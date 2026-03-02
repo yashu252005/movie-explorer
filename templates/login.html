@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Movie Explorer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="auth-page">
+<div class="auth-bg">
+<div class="container py-5">
+    <div class="row justify-content-center auth-wrap">
+        <div class="col-md-10 col-lg-6 col-xl-5">
+            <div class="card auth-card shadow-lg p-4 p-md-5">
+                <h3 class="mb-2 text-center">Sign in</h3>
+                <p class="text-center text-muted mb-4">Use your username or email to continue.</p>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <form method="POST" class="auth-form">
+                    <input type="hidden" name="next" value="{{ next_url }}">
+                    <div class="form-floating mb-3">
+                        <input type="text" id="identifier" name="identifier" class="form-control" placeholder="name@example.com" required>
+                        <label for="identifier">Username or Email</label>
+                    </div>
+                    <div class="form-floating mb-2">
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
+                        <label for="password">Password</label>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mb-3 auth-links">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="remember-me">
+                            <label class="form-check-label" for="remember-me">Remember me</label>
+                        </div>
+                        <a href="{{ url_for('forgot_password') }}">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 auth-submit">Login</button>
+                </form>
+
+                <p class="text-center mt-4 mb-0 auth-alt">
+                    New user? <a href="{{ url_for('signup') }}">Create an account</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+</html>

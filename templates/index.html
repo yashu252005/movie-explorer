@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Movie & TV Show Explorer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container mt-3 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h3 class="mb-0">Movie Explorer</h3>
+        <div class="d-flex gap-2 flex-wrap">
+            <span class="btn btn-light border disabled">Hi, {{ current_user }}</span>
+            <a href="/watchlist" class="btn btn-outline-dark">Watchlist</a>
+            <a href="/favorites" class="btn btn-danger">Favorites</a>
+            <a href="/history" class="btn btn-outline-primary">History</a>
+            <a href="/upcoming" class="btn btn-outline-success">Upcoming</a>
+            <a href="/collections" class="btn btn-outline-warning">Collections</a>
+            <a href="/dashboard" class="btn btn-dark">Dashboard</a>
+            <a href="/logout" class="btn btn-outline-secondary">Logout</a>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="mb-3">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} mb-2" role="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <h1 class="text-center mb-2">Movie & TV Show Explorer</h1>
+    <p class="text-center text-muted mb-4">Discover content with smart filters and tracking</p>
+
+    {% if trending_movies %}
+    <div id="trendingCarousel" class="carousel slide mb-4 shadow-sm rounded-4 overflow-hidden" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            {% for movie in trending_movies %}
+            <button
+                type="button"
+                data-bs-target="#trendingCarousel"
+                data-bs-slide-to="{{ loop.index0 }}"
+                class="{% if loop.first %}active{% endif %}"
+                aria-current="{% if loop.first %}true{% endif %}"
+                aria-label="Slide {{ loop.index }}"
+            ></button>
+            {% endfor %}
+        </div>
+        <div class="carousel-inner">
+            {% for movie in trending_movies %}
+            <div class="carousel-item {% if loop.first %}active{% endif %}" data-bs-interval="3000">
+                <a href="/movie/{{ movie.id }}" class="text-decoration-none text-white">
+                    {% if movie.backdrop_path %}
+                    <img src="https://image.tmdb.org/t/p/original{{ movie.backdrop_path }}" class="d-block w-100 trending-slide-image" alt="{{ movie.title }}">
+                    {% elif movie.poster_path %}
+                    <img src="{{ image_url }}{{ movie.poster_path }}" class="d-block w-100 trending-slide-image" alt="{{ movie.title }}">
+                    {% else %}
+                    <div class="trending-slide-image d-flex align-items-center justify-content-center bg-secondary">
+                        <h4 class="text-white mb-0">{{ movie.title }}</h4>
+                    </div>
+                    {% endif %}
+                    <div class="carousel-caption text-start">
+                        <h5 class="mb-1">{{ movie.title }}</h5>
+                        <p class="mb-0">Trending now | Rating: {{ movie.vote_average }}</p>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#trendingCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#trendingCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+    {% endif %}
+
+    <form method="GET" class="filter-box p-3 rounded-4 shadow-sm mb-4">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Search</label>
+                <input
+                    type="text"
+                    name="search"
+                    class="form-control"
+                    placeholder="Movie title"
+                    value="{{ filters.search }}"
+                >
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Genre</label>
+                <select name="genre" class="form-select">
+                    <option value="">All</option>
+                    {% for g in genres %}
+                    <option value="{{ g.id }}" {% if filters.genre == g.id|string %}selected{% endif %}>
+                        {{ g.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Year</label>
+                <input
+                    type="number"
+                    name="year"
+                    min="1900"
+                    max="2100"
+                    class="form-control"
+                    placeholder="2025"
+                    value="{{ filters.year }}"
+                >
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Min Rating</label>
+                <select name="rating" class="form-select">
+                    <option value="">Any</option>
+                    <option value="5" {% if filters.rating == '5' %}selected{% endif %}>5+</option>
+                    <option value="6" {% if filters.rating == '6' %}selected{% endif %}>6+</option>
+                    <option value="7" {% if filters.rating == '7' %}selected{% endif %}>7+</option>
+                    <option value="8" {% if filters.rating == '8' %}selected{% endif %}>8+</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Streaming ({{ region }})</label>
+                <select name="provider" class="form-select">
+                    <option value="">Any Platform</option>
+                    {% for p in providers %}
+                    <option value="{{ p.provider_id }}" {% if filters.provider == p.provider_id|string %}selected{% endif %}>
+                        {{ p.provider_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="/" class="btn btn-outline-secondary">Reset</a>
+        </div>
+    </form>
+
+    <div class="row g-4">
+        {% for movie in movies %}
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <a href="/movie/{{ movie.id }}" class="text-decoration-none text-dark">
+                <div class="card h-100 shadow-sm">
+                    {% if movie.poster_path %}
+                    <img src="{{ image_url }}{{ movie.poster_path }}" class="card-img-top" alt="{{ movie.title }}">
+                    {% else %}
+                    <div class="text-center p-5"><p>No Image</p></div>
+                    {% endif %}
+                    <div class="card-body text-center">
+                        <h6 class="card-title">{{ movie.title }}</h6>
+                        <p class="card-text mb-0">Rating: {{ movie.vote_average }}</p>
+                        <small class="text-muted">Release: {{ movie.release_date }}</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if movies|length == 0 %}
+    <p class="text-center mt-5 text-muted">No movies found for current filters.</p>
+    {% endif %}
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

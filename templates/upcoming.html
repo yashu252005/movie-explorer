@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upcoming Releases</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h2 class="mb-0">Upcoming Releases</h2>
+        <div class="d-flex gap-2">
+            <a href="/history" class="btn btn-outline-primary">History</a>
+            <a href="/collections" class="btn btn-outline-warning">Collections</a>
+            <a href="/dashboard" class="btn btn-dark">Dashboard</a>
+            <a href="/" class="btn btn-secondary">Back Home</a>
+        </div>
+    </div>
+    <p class="text-muted mb-4">Calendar window: {{ start_date }} to {{ end_date }}</p>
+
+    <div class="row g-4">
+        {% for movie in movies %}
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="card h-100 shadow-sm">
+                {% if movie.poster_path %}
+                <img src="{{ image_url }}{{ movie.poster_path }}" class="card-img-top" style="height:350px; object-fit:cover;">
+                {% endif %}
+                <div class="card-body">
+                    <h6 class="card-title">{{ movie.title }}</h6>
+                    <p class="mb-2"><small>Release: {{ movie.release_date }}</small></p>
+                    <p class="mb-2"><small>Rating: {{ movie.vote_average }}</small></p>
+                    <a href="/movie/{{ movie.id }}" class="btn btn-outline-success btn-sm">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-muted">No upcoming releases found.</p>
+        {% endfor %}
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ movie.title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container my-4">
+    <div class="d-flex justi<!fy-content-between align-items-center mb-4">
+        <h2 class="mb-0">{{ movie.title }}</h2>
+        <div class="d-flex gap-2">
+            <a href="/collections" class="btn btn-outline-warning">Collections</a>
+            <a href="/dashboard" class="btn btn-dark">Dashboard</a>
+            <a href="/" class="btn btn-secondary">Back Home</a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            {% if movie.poster_path %}
+            <img src="{{ image_url }}{{ movie.poster_path }}" class="img-fluid rounded shadow-sm" alt="{{ movie.title }}">
+            {% endif %}
+            <div class="d-grid gap-2 mt-3">
+                <a href="/add_watchlist/{{ movie.id }}" class="btn btn-warning">Add to Watchlist</a>
+                <a href="/add_favorite/{{ movie.id }}" class="btn btn-danger">Add to Favorites</a>
+                <a href="/mark_watched/{{ movie.id }}" class="btn btn-success">Mark as Watched</a>
+            </div>
+            <div class="card mt-3 p-3">
+                <h6>Add to Collection</h6>
+                <form method="POST" action="/collections/add">
+                    <input type="hidden" name="movie_id" value="{{ movie.id }}">
+                    <select class="form-select mb-2" name="collection_id" required>
+                        <option value="">Select collection</option>
+                        {% for col in collections %}
+                        <option value="{{ col['id'] }}">{{ col['name'] }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-outline-warning btn-sm w-100">Add</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <p>{{ movie.overview }}</p>
+            <p class="mb-1"><strong>Release:</strong> {{ movie.release_date }}</p>
+            <p class="mb-1"><strong>TMDB Rating:</strong> {{ movie.vote_average }}</p>
+            <p class="mb-3">
+                <strong>Genres:</strong>
+                {% for g in genres %}
+                <span class="badge text-bg-secondary">{{ g.name }}</span>
+                {% endfor %}
+            </p>
+
+            <h5>Top Cast</h5>
+            <ul>
+                {% for c in cast %}
+                <li>{{ c.name }}</li>
+                {% endfor %}
+            </ul>
+
+            <h5>Key Crew</h5>
+            <ul>
+                {% for c in crew %}
+                <li>{{ c.name }}{% if c.job %} ({{ c.job }}){% endif %}</li>
+                {% endfor %}
+            </ul>
+
+            <h5>Where to Watch (US)</h5>
+            {% if stream_options or rent_options or buy_options %}
+            <div class="mb-2">
+                {% if stream_options %}
+                <p class="mb-1"><strong>Streaming:</strong>
+                    {% for p in stream_options %}
+                    <span class="badge text-bg-success me-1">{{ p.provider_name }}</span>
+                    {% endfor %}
+                </p>
+                {% endif %}
+                {% if rent_options %}
+                <p class="mb-1"><strong>Rent:</strong>
+                    {% for p in rent_options %}
+                    <span class="badge text-bg-warning me-1">{{ p.provider_name }}</span>
+                    {% endfor %}
+                </p>
+                {% endif %}
+                {% if buy_options %}
+                <p class="mb-1"><strong>Buy:</strong>
+                    {% for p in buy_options %}
+                    <span class="badge text-bg-info me-1">{{ p.provider_name }}</span>
+                    {% endfor %}
+                </p>
+                {% endif %}
+            </div>
+            {% if provider_link %}
+            <a href="{{ provider_link }}" target="_blank" class="btn btn-outline-primary btn-sm">Open Provider Details</a>
+            {% endif %}
+            {% else %}
+            <p class="text-muted">No provider information available right now.</p>
+            {% endif %}
+
+            <h5 class="mt-4">Share Recommendation</h5>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ twitter_share }}" target="_blank" class="btn btn-outline-dark btn-sm">Share on X</a>
+                <a href="{{ whatsapp_share }}" target="_blank" class="btn btn-outline-success btn-sm">Share on WhatsApp</a>
+                <a href="{{ email_share }}" class="btn btn-outline-primary btn-sm">Share by Email</a>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="copyShareLink()">Copy Link</button>
+            </div>
+            <small id="copy-msg" class="text-muted"></small>
+        </div>
+    </div>
+
+    <hr class="my-4">
+
+    <h4>User Reviews</h4>
+    {% for r in reviews %}
+    <div class="border p-2 mb-2 rounded bg-white">
+        Rating: {{ r[0] }}/5
+        <p class="mb-0">{{ r[1] }}</p>
+    </div>
+    {% else %}
+    <p>No reviews yet.</p>
+    {% endfor %}
+
+    <h4 class="mt-4">Add Review</h4>
+    <form method="POST" action="/review/{{ movie.id }}">
+        <div class="mb-2">
+            <label class="form-label">Rating (1-5)</label>
+            <input type="number" name="rating" min="1" max="5" required class="form-control">
+        </div>
+        <div class="mb-2">
+            <label class="form-label">Review</label>
+            <textarea name="review" class="form-control" required></textarea>
+        </div>
+        <button class="btn btn-primary mt-2">Submit Review</button>
+    </form>
+
+    <h4 class="mt-4">Similar Movies</h4>
+    <div class="d-flex gap-2 flex-wrap">
+        {% for m in similar[:6] %}
+        {% if m.poster_path %}
+        <a href="/movie/{{ m.id }}">
+            <img src="{{ image_url }}{{ m.poster_path }}" width="120" class="rounded shadow-sm" alt="{{ m.title }}">
+        </a>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+<script>
+function copyShareLink() {
+    navigator.clipboard.writeText("{{ share_url }}").then(function () {
+        document.getElementById("copy-msg").innerText = "Link copied";
+    });
+}
+</script>
+</body>
+</html>

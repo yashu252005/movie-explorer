@@ -1,0 +1,21 @@
+<h3>Your Favorites</h3>
+
+<div class="row">
+{% for movie in movies %}
+    <div class="col-md-3">
+        <div class="card">
+            {% if movie[3] %}
+            <img src="{{ image_url }}{{ movie[3] }}" class="card-img-top">
+            {% endif %}
+            <div class="card-body text-center">
+                <h6>{{ movie[2] }}</h6>
+                <a href="/movie/{{ movie[1] }}" class="btn btn-primary btn-sm">
+                    View
+                </a>
+            </div>
+        </div>
+    </div>
+{% else %}
+<p>No favorites added.</p>
+{% endfor %}
+</div>
